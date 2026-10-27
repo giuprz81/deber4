@@ -1,3 +1,4 @@
+
 name: CI - Flutter
 
 on:
@@ -34,3 +35,32 @@ jobs:
 
       - name: Compilar APK
         run: flutter build apk --debug
+
+  entrega:
+    name: Generar y publicar APK
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Obtener dependencias
+        run: flutter pub get
+
+      - name: Generar APK
+        run: flutter build apk --debug
+
+      - name: Publicar APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: divisor-cuenta-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
